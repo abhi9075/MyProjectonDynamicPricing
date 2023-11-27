@@ -53,10 +53,11 @@ import pandas as pd
 app = Flask(__name__)
 
 # Load the model
-regmodel = load_model('model.h5')
+regmodel = load_model('final_model.h5')
 
 # Load the scaler
 scalar = pickle.load(open('scaled_data.pkl', 'rb'))
+scaler_new = pickle.load(open('y_scaled.pkl', 'rb'))
 
 # Define the list of features used during training
 # Adjust this list according to the features used during model training
@@ -82,12 +83,15 @@ def predict_api():
     # scaled_data = scalar.fit_transform(new_data)
     # Make prediction
     output = regmodel.predict(new_data)
-
+    new_out = scaler_new.inverse_transform(output)
     # Inverse transform the prediction
     # output = scalar.inverse_transform(output.reshape(-1, 1))[0]
-    output = scalar.inverse_transform(output)
+    # output = scalar.inverse_transform(new_out)
+    # output_abs = np.abs(new_out)
 
-    return jsonify(float(output[0]))
+    # Convert the NumPy array to a serializable format (nested list)
+    output_abs = [abs(value) for value in new_out.flatten().tolist()]
+    return jsonify(output_abs)
 
 if __name__ == "__main__":
     app.run(debug=True)
